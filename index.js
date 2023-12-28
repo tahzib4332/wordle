@@ -18,7 +18,6 @@ let hasGameStarted = false;
 let PICKED_WORD = undefined;
 const TOTAL_TRIES = 5;
 let triesLeft = TOTAL_TRIES;
-let GUESSED_WORDS_ARR = [];
 
 
 async function game(e) {
@@ -51,17 +50,26 @@ async function game(e) {
 		userMessage.length !== 6
 	)return;
 
+	
+	// remove the prefix from the message thus getting the guessed word
+	const GUESSED_WORD = userMessage.slice(PREFIX.length);
 
-	if( triesLeft === 0 ){
-		e.reply("You lost! ;-;");
+	// if( GUESSED_WORD === PICKED_WORD ) {
+	// 	triesLeft--;
+	// 	handleGuesses(e, GUESSED_WORD, PICKED_WORD, triesLeft);
+	// 	e.reply("You won! :D");
+	// 	hasGameStarted = false;
+	// 	return;
+	// }
+	
+	if( triesLeft >= 0 && GUESSED_WORD === PICKED_WORD ){
+		e.reply("You won! :D");
 		hasGameStarted = false;
+		handleGuesses(e, GUESSED_WORD, PICKED_WORD, -1);
 		triesLeft = TOTAL_TRIES;
 		return;
 	}
 
-	
-	// remove the prefix from the message thus getting the guessed word
-	const GUESSED_WORD = userMessage.slice(PREFIX.length);
 	// check validation for user input as in , is it a valid word.
 	// And notify user if not valid
 	// let isWordValid = await isValid(GUESSED_WORD);
@@ -71,7 +79,7 @@ async function game(e) {
 	// 	return;
 	// }
 	triesLeft--;
-	handleGuesses(e, GUESSED_WORD, PICKED_WORD, GUESSED_WORDS_ARR, triesLeft);
+	handleGuesses(e, GUESSED_WORD, PICKED_WORD, triesLeft);
 }
 
 client.on("messageCreate", async (e) => {
