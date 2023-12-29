@@ -16,9 +16,34 @@ client.on("ready", () => {
 
 let hasGameStarted = false;
 let PICKED_WORD = undefined;
+let GUESSED_WORD = undefined;
 const TOTAL_TRIES = 5;
 let triesLeft = TOTAL_TRIES;
+let timeTillBotTurnsOff = 1 * (60 * 1000); // minute -> mili-sec
+let shutDownTimer = undefined;
 
+function shutDown(e){
+	e.channel.send("The game has ended due to inactivity.");
+	handleLoose(e);
+}
+
+
+function handleWin(e){
+	e.channel.send("Congrats!!");
+	handleGuesses(e, GUESSED_WORD, PICKED_WORD, triesLeft, true);
+	triesLeft = TOTAL_TRIES;
+	PICKED_WORD = undefined;
+	hasGameStarted = false;
+}
+
+function handleLoose(e){
+	handleGuesses(e, GUESSED_WORD, PICKED_WORD, triesLeft, true);
+	e.channel.send("The correct word was: " + PICKED_WORD);
+	e.channel.send("Better luck next time!");
+	PICKED_WORD = undefined;
+	hasGameStarted = false;
+	triesLeft = TOTAL_TRIES;
+}
 
 async function game(e) {
 	// return if the message is from a bot
@@ -30,13 +55,17 @@ async function game(e) {
 		// startGame()  fetches a word with api call,
 		// and makes starting embed and returns the fetched word or "Error" if error occurs
 		PICKED_WORD = await startGame(e, TOTAL_TRIES);
-		e.channel.send(PICKED_WORD);
+		GUESSED_WORD = PICKED_WORD;
 		// stop executing if an error occurs from the api call
 		if (PICKED_WORD === "Error") {
 			e.reply("Something went wrong! ;-;");
 			return;
 		}
 		hasGameStarted = true;
+		
+		shutDownTimer = setTimeout(() => {
+			shutDown(e)
+		},timeTillBotTurnsOff);
 	}	
 	// remove any whitespaces from both sides of the message to keep the proper length
 	// and convert to lower case
@@ -52,34 +81,35 @@ async function game(e) {
 
 	
 	// remove the prefix from the message thus getting the guessed word
-	const GUESSED_WORD = userMessage.slice(PREFIX.length);
+	GUESSED_WORD = userMessage.slice(PREFIX.length);
+	// check validation for user input as in , is it a valid word.
+	// And notify user if not valid
+	let isWordValid = await isValid(GUESSED_WORD);
 
-	// if( GUESSED_WORD === PICKED_WORD ) {
-	// 	triesLeft--;
-	// 	handleGuesses(e, GUESSED_WORD, PICKED_WORD, triesLeft);
-	// 	e.reply("You won! :D");
-	// 	hasGameStarted = false;
-	// 	return;
-	// }
+	if (!isWordValid) {
+		e.reply("Invalid word! Try again!");
+		return;
+	}
 	
-	if( triesLeft >= 0 && GUESSED_WORD === PICKED_WORD ){
-		e.reply("You won! :D");
-		hasGameStarted = false;
-		handleGuesses(e, GUESSED_WORD, PICKED_WORD, -1);
-		triesLeft = TOTAL_TRIES;
+	triesLeft = triesLeft - 1;
+	
+	if( GUESSED_WORD === PICKED_WORD ){
+		handleWin(e);
+		clearTimeout(shutDownTimer);
 		return;
 	}
 
-	// check validation for user input as in , is it a valid word.
-	// And notify user if not valid
-	// let isWordValid = await isValid(GUESSED_WORD);
+	else if( triesLeft === 0 ){
+		handleLoose(e);
+		clearTimeout(shutDownTimer);
+		return;
+	}
 
-	// if (!isWordValid) {
-	// 	e.reply("Invalid word! Try again!");
-	// 	return;
-	// }
-	triesLeft--;
 	handleGuesses(e, GUESSED_WORD, PICKED_WORD, triesLeft);
+	clearTimeout(shutDownTimer);
+	shutDownTimer = setTimeout(() => {
+		shutDown(e)
+	},timeTillBotTurnsOff);
 }
 
 client.on("messageCreate", async (e) => {

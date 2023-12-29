@@ -1,15 +1,9 @@
 const getCodeBlock = require("../utils/getCodeBlock.js");
 const makeEmbed = require("../utils/makeEmbed.js");
 
-function handleGuesses(e, guessedWord, pickedWord, triesLeft){
+function handleGuesses(e, guessedWord, pickedWord, triesLeft, gameFinished = false){
 
 	let colorArr = [];
-
-	if(triesLeft < 0){
-		colorArr = [];
-		getCodeBlock(guessedWord , colorArr, triesLeft);
-		return;
-	}
 
 	for(let i=0; i<guessedWord.length; i++){
 
@@ -24,9 +18,13 @@ function handleGuesses(e, guessedWord, pickedWord, triesLeft){
 		}
 	}
 
-	const CODE_BLOCK = getCodeBlock(guessedWord , colorArr, triesLeft);
+	const CODE_BLOCK = getCodeBlock(guessedWord , colorArr, triesLeft, gameFinished);
 	const EMBED = makeEmbed(CODE_BLOCK, triesLeft);
 	e.channel.send({embeds: [EMBED]});
+
+	if(gameFinished){
+		colorArr = [];
+	}
 }
 
 module.exports = handleGuesses;

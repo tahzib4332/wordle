@@ -8,7 +8,7 @@ function setCodeBlock(guessedWordsArr){
 
 	let text = "";
 	guessedWordsArr.forEach((word) => {
-		text += `\t${word}\t\n`;
+		text += `|\t${word}\t|\n`;
 		if(word !== guessedWordsArr[guessedWordsArr.length - 1])
 			text += "\n";
 	});
