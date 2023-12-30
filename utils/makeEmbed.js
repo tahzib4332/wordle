@@ -5,7 +5,7 @@ function makeEmbed(CODE_BLOCK, triesLeft) {
 		.setTitle("Wordle")
 		.setDescription("For PC" + CODE_BLOCK + "For Mobile" + CODE_BLOCK)
 		.setColor("Random")
-		.setFooter({ text: `Tries Left ${triesLeft}` })
+		.setFooter({ text: `Tries Left: ${triesLeft}` })
 		
 	return embed;
 }

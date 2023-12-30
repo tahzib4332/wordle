@@ -1,4 +1,8 @@
 const PREFIX = ".";
-const COMMAND = PREFIX + "wordle";
+const COMMANDS = {
+	start: PREFIX + "wordle",
+	end: PREFIX + "end",
+	help: PREFIX + "help"
+};
 
-module.exports = { COMMAND, PREFIX };
+module.exports = { COMMANDS, PREFIX };
